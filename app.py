@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 import json
 import asyncio
 from datetime import datetime
-import aiohttp
+import httpx
 
 app = Flask(__name__)
 
@@ -14,19 +14,19 @@ CLOUDINARY_API_SECRET = "WMWrndmiqcot_20p0rc50odjPTw"
 # تنزيل الملف من Cloudinary (غير متزامن)
 async def download_file_from_cloudinary():
     url = "https://res.cloudinary.com/duu2fy7bq/raw/upload/v1741983005/keys/ky.txt"
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as response:
-            if response.status == 200:
-                file_content = await response.text()
-                print("Downloaded File Content:", file_content)
-                return json.loads(file_content)
-            else:
-                raise Exception(f"Failed to download file from Cloudinary. Status Code: {response.status}")
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url)
+        if response.status_code == 200:
+            file_content = response.text
+            print("Downloaded File Content:", file_content)
+            return json.loads(file_content)
+        else:
+            raise Exception(f"Failed to download file from Cloudinary. Status Code: {response.status_code}")
 
 # تحديث الملف في Cloudinary باستخدام API REST (غير متزامن)
 async def update_file_in_cloudinary(keys):
     upload_url = f"https://api.cloudinary.com/v1_1/{CLOUDINARY_CLOUD_NAME}/raw/upload"
-    auth = aiohttp.BasicAuth(CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET)
+    auth = (CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET)
     headers = {"Content-Type": "application/json"}
     data = {
         "public_id": "keys/ky.txt",
@@ -35,12 +35,12 @@ async def update_file_in_cloudinary(keys):
         "file": json.dumps(keys),
     }
 
-    async with aiohttp.ClientSession() as session:
-        async with session.post(upload_url, auth=auth, headers=headers, json=data) as response:
-            print(f"Response Status: {response.status}")
-            print(f"Response Body: {await response.text()}")
-            if response.status != 200:
-                raise Exception(f"Failed to update file in Cloudinary: {await response.text()}")
+    async with httpx.AsyncClient() as client:
+        response = await client.post(upload_url, auth=auth, headers=headers, json=data)
+        print(f"Response Status: {response.status_code}")
+        print(f"Response Body: {response.text}")
+        if response.status_code != 200:
+            raise Exception(f"Failed to update file in Cloudinary: {response.text}")
 
 # التحقق من صلاحية الأكواد (غير متزامن)
 async def is_valid_key(key):
