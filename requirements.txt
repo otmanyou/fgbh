@@ -1,2 +1,2 @@
 Flask==2.3.2
-aiohttp==3.8.5
+aiohttp
