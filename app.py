@@ -1,17 +1,31 @@
 from flask import Flask, request, jsonify
 from datetime import datetime
-import requests
+import cloudinary
+import cloudinary.api
 import json
 
 app = Flask(__name__)
 
-# دالة لجلب الملف من الرابط
+# إعداد Cloudinary
+cloudinary.config(
+    cloud_name="duu2fy7bq",
+    api_key="459654532934462",
+    api_secret="WMWrndmiqcot_20p0rc50odjPTw"
+)
+
+# دالة لجلب الملف من Cloudinary باستخدام public_id
 def fetch_keys():
     try:
-        response = requests.get('https://res.cloudinary.com/duu2fy7bq/raw/upload/v1741983005/keys/ky.txt')
+        # جلب الملف باستخدام public_id
+        resource = cloudinary.api.resource("keys/ky.txt", resource_type="raw")
+        file_url = resource["secure_url"]  # الرابط الآمن للملف
+
+        # تنزيل محتوى الملف
+        response = requests.get(file_url)
         response.raise_for_status()  # التحقق من وجود أخطاء في الطلب
         return json.loads(response.text)
     except Exception as e:
+        print(f"Error fetching keys: {str(e)}")
         return {}
 
 # دالة للتحقق من صلاحية الكود
