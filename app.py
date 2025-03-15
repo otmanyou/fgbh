@@ -3,6 +3,7 @@ from datetime import datetime
 import cloudinary
 import cloudinary.api
 import json
+import requests  # إضافة مكتبة requests
 
 app = Flask(__name__)
 
